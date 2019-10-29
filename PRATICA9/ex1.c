@@ -11,10 +11,7 @@ typedef struct Guerreiro{
 
 int rolaDado(){
 	int dado;
-	do {
-		dado = rand()%6;
-	}while(dado == 0);
-	
+	dado = rand()%6+1;
 	return dado;
 }
 
@@ -26,34 +23,36 @@ int rolaDados(){
 	return somaDados;
 }
 
-void criaGuerreiro(guerreiro g1){
-	g1.ataque = rolaDado();
-	g1.defesa = rolaDado();
-	g1.carisma = rolaDado();
-	g1.pontos_vida = rolaDados();
+void criaGuerreiro(guerreiro *g1){
+	g1->ataque = rolaDado();
+	g1->defesa = rolaDado();
+	g1->carisma = rolaDado();
+	g1->pontos_vida = rolaDados();
 }
 
-void bonusCarisma(guerreiro g1){
-	if(g1.carisma == 3){
-		g1.carisma = g1.carisma - 3;
-	} else if(g1.carisma > 3 && g1.carisma <= 5){
-		g1.carisma = g1.carisma - 2;
-	} else if(g1.carisma > 5 && g1.carisma <= 7){
-		g1.carisma = g1.carisma - 1;
-	} else if(g1.carisma >= 14 && g1.carisma <= 15){
-		g1.carisma = g1.carisma + 1;
-	} else if(g1.carisma >= 16 && g1.carisma <= 17){
-		g1.carisma = g1.carisma + 2;
-	} else if(g1.carisma == 18){
-		g1.carisma = g1.carisma + 3;
+void bonusCarisma(guerreiro *g1){
+	if(g1->carisma == 3){
+		g1->carisma = g1->carisma - 3;
+	} else if(g1->carisma > 3 && g1->carisma <= 5){
+		g1->carisma = g1->carisma - 2;
+	} else if(g1->carisma > 5 && g1->carisma <= 7){
+		g1->carisma = g1->carisma - 1;
+	} else if(g1->carisma >= 14 && g1->carisma <= 15){
+		g1->carisma = g1->carisma + 1;
+	} else if(g1->carisma >= 16 && g1->carisma <= 17){
+		g1->carisma = g1->carisma + 2;
+	} else if(g1->carisma == 18){
+		g1->carisma = g1->carisma + 3;
 	}
-	return g1.carisma;
+	return g1->carisma;
 }
 
 int main(){
 	
 	guerreiro x;
-	criaGuerreiro(x);
+	criaGuerreiro(&x);
+	printf("carisma antigo: %i\n", x.carisma);
+	bonusCarisma(&x);
 	
 	printf("ataque: %i\n", x.ataque);
 	printf("defesa: %i\n", x.defesa);
