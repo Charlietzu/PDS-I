@@ -15,7 +15,7 @@ int ehPalindromo(char s[]){
     }
     return 1;
 }
-
+/*
 void lePalavra(char s[]){
     int i = 0;
     do {
@@ -24,13 +24,11 @@ void lePalavra(char s[]){
     }while(s[i] != '\n' && s[i] != ' ');
     s[i] = '\0';
 }
-
+*/
 int main(){
     char palavra[128] = "reviver";
 
-    //printf("tamanho %d\n", tamStr(palavra));
-    //printf("%d\n",ehPalindromo(palavra));
-    lePalavra(palavra);
-    printf("%s\n", palavra);
+    printf("tamanho %d\n", tamStr(palavra));
+    printf("%d\n",ehPalindromo(palavra));
     return 0;
 }
