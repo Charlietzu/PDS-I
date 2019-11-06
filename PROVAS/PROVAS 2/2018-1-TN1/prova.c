@@ -1,4 +1,5 @@
 #include <stdio.h>
+#define MAX_PALAVRAS 10
 
 int tamStr(char s[]){
     int i;
@@ -15,20 +16,50 @@ int ehPalindromo(char s[]){
     }
     return 1;
 }
-/*
+
 void lePalavra(char s[]){
-    int i = 0;
+    int i;
     do {
         scanf("%c", &s[i]);
         i++;
-    }while(s[i] != '\n' && s[i] != ' ');
-    s[i] = '\0';
-}
-*/
-int main(){
-    char palavra[128] = "reviver";
+    }while(s[i-1] != '\n' && s[i-1] != ' ');  
+    s[i - 1] = '\0';
+}   
 
-    printf("tamanho %d\n", tamStr(palavra));
-    printf("%d\n",ehPalindromo(palavra));
+typedef struct Palavra{
+    char palavra[100];
+    int pali;
+    int tam;
+}Palavra;
+
+void preenchePalavra(Palavra *p){
+    p->palavra = lePalavra(p->palavra);
+    p->tam = tamStr(p->palavra);
+    p->pali = ehPalindromo(p->palavra);
+}
+
+float tamMedio(Palavra p[], int n){
+    int i, soma = 0;
+    for(i = 0; i < n; i++){
+        soma += tamStr(p[i]);
+    }
+    return soma / n;
+}
+
+int main(){
+    Palavra palavras[MAX_PALAVRAS];
+    int i;
+
+    for(i = 0; i < MAX_PALAVRAS; i++){
+        preenchePalavra(&palavras[i]);
+    }
+
+    float media = tamMedio(p, MAX_PALAVRAS);
+    for(i = 0; i < MAX_PALAVRAS; i++){
+        if(tamStr(palavras[i]) > media && ehPalindromo(palavras[i]) == 1){
+            printf("\n%s (%d)", palavras[i].palavra, palavras[i].tamanho);
+        }
+    }
+
     return 0;
 }
