@@ -1,9 +1,10 @@
 #include <stdio.h>
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
+#include <math.h>
 
 //variaveis globais
-const float FPS = 10; //numero de quadros por segundo, a ser carregado no temporizador (altere esse valor e veja o que acontece)
+const float FPS = 100; //numero de quadros por segundo, a ser carregado no temporizador (altere esse valor e veja o que acontece)
 const int SCREEN_W = 640;  //largura da tela
 const int SCREEN_H = 480;  //altura da tela
 
@@ -120,7 +121,9 @@ int main(int argc, char **argv){
             //limpo a tela
             al_clear_to_color(al_map_rgb(0,0,0));
             //desenho o passaro na nova posicao
-            al_draw_bitmap(bird, bird_x, bird_y, 0);
+            //al_draw_bitmap(bird, bird_x, bird_y, 0);
+            //al_draw_bitmap(bird, bird_x, bird_y+30*sin(bird_x/10.0), 0);
+            al_draw_bitmap(bird, bird_x, bird_y-bird_x, 0);
             //dou um refresh na tela
             al_flip_display();
         }

@@ -48,7 +48,8 @@ int main(int argc, char **argv){
     //variavel do tipo char[] que recebe um texto
     char my_text[20];
 	//variavel que recebe o valor de entrada 
-    int input_value = 100;
+    int input_value = 150;
+    
 	//posicao x da barra de entrada
     int x_bar = 50;
 
@@ -74,7 +75,7 @@ int main(int argc, char **argv){
         //desenha um retangulo de cor rgb(100,0,0) nas posicoes x1=10, y1=80 (vertice superior esquerdo) x2=x_bar, y2=120 (vertice inferior direito)
         al_draw_filled_rectangle(10, 80, x_bar, 120, al_map_rgb(100,0,0));
         //imprime um texto informativo na tela
-        al_draw_text(size_32, al_map_rgb(128, 200, 200), 10, 400, 0, "aperte as teclas A, S, D, W e ENTER para finalizar");
+        al_draw_text(size_32, al_map_rgb(128, 200, 200), 10, 400, 0, "aperte as SETAS DO TECLADO e ENTER para finalizar");
 		//reinicializa a tela
         al_flip_display();
 		
@@ -88,20 +89,23 @@ int main(int argc, char **argv){
 			//verifica qual tecla foi
             switch(e.keyboard.keycode) {
 				//se a tecla for o W
-                case ALLEGRO_KEY_W:
+                case ALLEGRO_KEY_UP:
                     input_value += 5;
+                    if (input_value > 150){
+                        input_value = 150;
+                    }
                 break;
 
 				//se a tecla for o S
-                case ALLEGRO_KEY_S:
+                case ALLEGRO_KEY_DOWN:
                     input_value -= 5;
                 break;
 
-                case ALLEGRO_KEY_A:
+                case ALLEGRO_KEY_LEFT:
                     x_bar -= 5;
                 break;
 
-                case ALLEGRO_KEY_D:
+                case ALLEGRO_KEY_RIGHT:
                     x_bar += 5;
                 break;
 

@@ -55,7 +55,7 @@ int main(int argc, char **argv){
    al_set_target_bitmap(bouncer);
  
 	//altera a cor do bouncer para rgb(255,0,255)
-   al_clear_to_color(al_map_rgb(255, 0, 255));
+   al_clear_to_color(al_map_rgb(255, 255, 255));
  
 	//avisa o allegro que agora eu quero modificar as propriedades da tela
    al_set_target_bitmap(al_get_backbuffer(display));

@@ -28,7 +28,7 @@ al_draw_bitmap(image, 50, 100, 0);
 al_flip_display();
 
 //pausa a tela por 3.0 segundos
-al_rest(3.0);
+al_rest(10.0);
 
 //destroi a variavel imagem = libera a memoria alocada para ela
 al_destroy_bitmap(image);
