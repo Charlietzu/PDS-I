@@ -12,17 +12,66 @@ void imprimeMatriz(int m, int n, int matriz[m][n]){
 	}
 }
 
-void identificaSequencia(int m, int n, int matriz[m][n]){
-	
-	int matrizAuxiliar[m][n];
-	int i = 0, j = 0, contSeq = 1, contZeros = 0;
-
-	//criação da matriz auxiliar
+void criaMatrizAuxiliar(int m, int n, int matriz[m][n]){
+	int i, j;
 	for(i = 0; i < m; i++){
 		for(j = 0; j < n; j++){
-			matrizAuxiliar[i][j] = 0;
+			matriz[i][j] = 0;
 		}
 	}
+}
+
+int identificaSequencia(int m, int n, int matriz[m][n]){
+	int matrizAuxiliar[m][n];
+	criaMatrizAuxiliar(m, n, matrizAuxiliar);
+
+	int i = 0, j = 0, contSeq = 1, sequencia = 0;
+	//verificar sequencias nas linhas
+	//trocar os indices das sequencias encontradas e trocar por 1 na matriz auxiliar
+	for(i = 0; i < m; i++){
+		contSeq = 1;
+		for(j = 1; j < n; j++){
+			if(matriz[i][j] != 0){
+				if(matriz[i][j] == matriz[i][j - 1]){
+					contSeq++;
+				} else {
+					contSeq = 1;
+				}
+				if(contSeq >= 3){
+					sequencia = 1;
+					return sequencia;
+				}
+			}	
+		}
+	}
+
+	//verificar sequencias nas colunas
+		//trocar os indices das sequencias encontradas e trocar por 1 na matriz auxiliar
+	for(j = 0; j < n; j++){
+		for(i = 0; i < m; i++){
+			if(matriz[i][j] != 0){
+				if(matriz[i][j] == matriz[i - 1][j]){
+				contSeq++;
+				} else {
+					contSeq = 1;
+				}
+				if(contSeq >= 3){
+					sequencia = 1;
+					return sequencia;
+				}
+			}
+		}
+	}
+
+	return sequencia;
+}
+
+void zeraSequencia(int m, int n, int matriz[m][n]){
+	
+	int matrizAuxiliar[m][n];
+	criaMatrizAuxiliar(m, n, matrizAuxiliar);
+
+	int i = 0, j = 0, contSeq = 1, contZeros = 0;
 	//verificar sequencias nas linhas
 		//trocar os indices das sequencias encontradas e trocar por 1 na matriz auxiliar
 	for(i = 0; i < m; i++){
@@ -106,9 +155,13 @@ int main(){
 	imprimeMatriz(m, n, matriz);
 	printf("\n");
 
-	identificaSequencia(m, n, matriz);
-	sobeZeros(m, n, matriz);
-
-	imprimeMatriz(m, n, matriz);
+	do{	
+		identificaSequencia(m, n, matriz);
+		zeraSequencia(m, n, matriz);
+		sobeZeros(m, n, matriz);
+		imprimeMatriz(m, n, matriz);
+		printf("\n");
+	}while(identificaSequencia(m, n, matriz) == 1);
+	
 	return 0;
 }
