@@ -218,6 +218,11 @@ void sobeZeros(){
 	}
 }
 
+
+int calculaPontuacao(){
+	int i, j;
+}
+
 int main(int argc, char **argv){
 
 	ALLEGRO_DISPLAY *display = NULL;
