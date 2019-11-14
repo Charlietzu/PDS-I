@@ -157,7 +157,7 @@ void zeraSequencia(){
 	int matrizAuxiliar[N_LINHAS][N_COLS];
 	criaMatrizAuxiliar(matrizAuxiliar);
 
-	int i = 0, j = 0, contSeq = 1, contZeros = 0;
+	int i = 0, j = 0, contSeq = 1;
 	//verificar sequencias nas linhas
 		//trocar os indices das sequencias encontradas e trocar por 1 na matriz auxiliar
 	for(i = 0; i < N_LINHAS; i++){
@@ -169,9 +169,12 @@ void zeraSequencia(){
 				contSeq = 1;
 			}
 			if(contSeq >= 3){
-				matrizAuxiliar[i][j - (contSeq - 2)] = 1;
-				matrizAuxiliar[i][j - (contSeq - 1)] = 1;
-				matrizAuxiliar[i][j] = 1;
+				for(contSeq; contSeq >= 0; contSeq--){
+					matrizAuxiliar[i][j - contSeq] = 1;
+				}
+				//matrizAuxiliar[i][j - (contSeq - 2)] = 1;
+				//matrizAuxiliar[i][j - (contSeq - 1)] = 1;
+				//matrizAuxiliar[i][j] = 1;
 			}
 		}
 	}
@@ -186,9 +189,12 @@ void zeraSequencia(){
 				contSeq = 1;
 			}
 			if(contSeq >= 3){
-				matrizAuxiliar[i - (contSeq - 2)][j] = 1;
-				matrizAuxiliar[i - (contSeq - 1)][j] = 1;
-				matrizAuxiliar[i][j] = 1;
+				for(contSeq; contSeq >= 0; contSeq--){
+					matrizAuxiliar[i - contSeq][j] = 1;
+				}
+				//matrizAuxiliar[i - (contSeq - 2)][j] = 1;
+				//matrizAuxiliar[i - (contSeq - 1)][j] = 1;
+				//matrizAuxiliar[i][j] = 1;
 			}
 		}
 	}
@@ -198,7 +204,6 @@ void zeraSequencia(){
 		for(j = 0; j < N_COLS; j++){
 			if(matrizAuxiliar[i][j] == 1){
 				M[i][j].type = 0;
-				contZeros++;
 			}
 		}
 	}
@@ -219,8 +224,10 @@ void sobeZeros(){
 }
 
 
-int calculaPontuacao(){
-	int i, j;
+int calculaPontuacao(int tamSequencia){
+	int pontuacao = 0;
+	pontuacao = pontuacao + pow(2, tamSequencia);
+	return pontuacao;
 }
 
 int main(int argc, char **argv){
@@ -247,7 +254,7 @@ int main(int argc, char **argv){
 		return -1;
 	}
 
-	display = al_create_display(SCREEN_W, SCREEN_H);
+	display = al_create_display(SCREEN_W, SCREEN_H+100);
 	if(!display) {
 		fprintf(stderr, "failed to create display!\n");
 		al_destroy_timer(timer);
@@ -276,7 +283,19 @@ int main(int argc, char **argv){
 	al_register_event_source(event_queue, al_get_mouse_event_source());    
    //inicia o temporizador
 	al_start_timer(timer);
+	//inicializa o modulo allegro que carrega as fontes
+    al_init_font_addon();
+	//inicializa o modulo allegro que entende arquivos tff de fontes
+    al_init_ttf_addon();
 	
+	ALLEGRO_FONT *size_32 = al_load_font("arial.ttf", 32, 1);
+
+	int pontuacao = 0;
+	char texto[20];
+
+	sprintf(texto, "Pontuacao: %d", pontuacao);
+	al_draw_text(size_32, al_map_rgb(255, 255, 255), 60, 700, 0, texto);
+
 	//inicializa matriz de Candies
 	do{
 		initCandies();
