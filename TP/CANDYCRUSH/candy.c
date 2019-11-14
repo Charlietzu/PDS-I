@@ -8,8 +8,8 @@
 #include <math.h>
 #include "matriz.h"
 
-#define SCREEN_W 480
-#define SCREEN_H 640
+#define LARGURA_DISPLAY 480
+#define ALTURA_DISPLAY 640
 #define FPS 60
 
 #define N_COLS 6
@@ -17,8 +17,8 @@
 
 #define N_TYPES 4
 
-const int COL_W = SCREEN_W/N_COLS;
-const int LIN_W = SCREEN_H/N_LINHAS;
+const int COL_W = LARGURA_DISPLAY/N_COLS;
+const int LIN_W = ALTURA_DISPLAY/N_LINHAS;
 
 typedef struct Candy{
 	int type;
@@ -91,11 +91,12 @@ void swap(int lin_src, int col_src, int lin_dst, int col_dst){
 	Candy aux;
 	aux = M[lin_src][col_src];
     int dist_col, dist_lin;
-    if(((lin_dst==lin_src) || (col_dst==col_src)) && ((lin_dst==lin_src + 1 || col_dst==col_src + 1) || (lin_dst==lin_src - 1 || col_dst==col_src - 1))){
-        M[lin_src][col_src] = M[lin_dst][col_dst];
-	    M[lin_dst][col_dst] = aux;
-    }
-	
+	if(M[lin_src][col_src].type != 0){
+		if(((lin_dst==lin_src) || (col_dst==col_src)) && ((lin_dst==lin_src + 1 || col_dst==col_src + 1) || (lin_dst==lin_src - 1 || col_dst==col_src - 1))){
+        	M[lin_src][col_src] = M[lin_dst][col_dst];
+	    	M[lin_dst][col_dst] = aux;
+    	}
+	}
 }
 
 void criaMatrizAuxiliar(int matriz[N_LINHAS][N_COLS]){
@@ -163,19 +164,18 @@ void zeraSequencia(){
 	for(i = 0; i < N_LINHAS; i++){
 		contSeq = 1;
 		for(j = 1; j < N_COLS; j++){
-			if(M[i][j].type == M[i][j - 1].type){
-				contSeq++;
-			} else {
-				contSeq = 1;
-			}
-			if(contSeq >= 3){
-				for(contSeq; contSeq >= 0; contSeq--){
-					matrizAuxiliar[i][j - contSeq] = 1;
+			if(M[i][j].type != 0){
+				if(M[i][j].type == M[i][j - 1].type){
+					contSeq++;
+				} else {
+					contSeq = 1;
 				}
-				//matrizAuxiliar[i][j - (contSeq - 2)] = 1;
-				//matrizAuxiliar[i][j - (contSeq - 1)] = 1;
-				//matrizAuxiliar[i][j] = 1;
-			}
+				if(contSeq >= 3){
+					for(contSeq = contSeq - 1; contSeq >= 0; contSeq--){
+						matrizAuxiliar[i][j - contSeq] = 1;
+					}
+				}
+			}	
 		}
 	}
 	
@@ -183,19 +183,18 @@ void zeraSequencia(){
 		//trocar os indices das sequencias encontradas e trocar por 1 na matriz auxiliar
 	for(j = 0; j < N_COLS; j++){
 		for(i = 0; i < N_LINHAS; i++){
-			if(M[i][j].type == M[i - 1][j].type){
-				contSeq++;
-			} else {
-				contSeq = 1;
-			}
-			if(contSeq >= 3){
-				for(contSeq; contSeq >= 0; contSeq--){
-					matrizAuxiliar[i - contSeq][j] = 1;
+			if(M[i][j].type != 0){
+				if(M[i][j].type == M[i - 1][j].type){
+					contSeq++;
+				} else {
+					contSeq = 1;
 				}
-				//matrizAuxiliar[i - (contSeq - 2)][j] = 1;
-				//matrizAuxiliar[i - (contSeq - 1)][j] = 1;
-				//matrizAuxiliar[i][j] = 1;
-			}
+				if(contSeq >= 3){
+					for(contSeq = contSeq - 1; contSeq >= 0; contSeq--){
+						matrizAuxiliar[i - contSeq][j] = 1;
+					}
+				}
+			}	
 		}
 	}
 	//trocar sequencias por 0
@@ -223,6 +222,16 @@ void sobeZeros(){
 	}
 }
 
+void imprimeMatriz(){
+	int i, j;
+	for(i = 0; i < N_LINHAS; i++){
+		for(j = 0; j < N_COLS; j++){
+			printf("%d ", M[i][j].type);
+		}
+		printf("\n");
+	}
+	printf("\n");
+}
 
 int calculaPontuacao(int tamSequencia){
 	int pontuacao = 0;
@@ -254,7 +263,7 @@ int main(int argc, char **argv){
 		return -1;
 	}
 
-	display = al_create_display(SCREEN_W, SCREEN_H+100);
+	display = al_create_display(LARGURA_DISPLAY, ALTURA_DISPLAY);
 	if(!display) {
 		fprintf(stderr, "failed to create display!\n");
 		al_destroy_timer(timer);
@@ -293,8 +302,8 @@ int main(int argc, char **argv){
 	int pontuacao = 0;
 	char texto[20];
 
-	sprintf(texto, "Pontuacao: %d", pontuacao);
-	al_draw_text(size_32, al_map_rgb(255, 255, 255), 60, 700, 0, texto);
+	//sprintf(texto, "Pontuacao: %d", pontuacao);
+	//al_draw_text(size_32, al_map_rgb(255, 255, 255), 60, 700, 0, texto);
 
 	//inicializa matriz de Candies
 	do{
@@ -311,8 +320,6 @@ int main(int argc, char **argv){
 	while(playing) {	
 	  //espera por um evento e o armazena na variavel de evento ev
 		al_wait_for_event(event_queue, &ev);
-        //zeraSequencia();
-        //sobeZeros();
 		if(ev.type == ALLEGRO_EVENT_KEY_DOWN) {
 			if(ev.keyboard.keycode == ALLEGRO_KEY_ESCAPE) {
 				playing = 0;
@@ -320,15 +327,16 @@ int main(int argc, char **argv){
 
 		}
 		else if(ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN) {
-			printf("\nclicou em (%d, %d)", ev.mouse.x, ev.mouse.y);
+			//printf("\nclicou em (%d, %d)", ev.mouse.x, ev.mouse.y);
 			getCell(ev.mouse.x, ev.mouse.y, &lin_src, &col_src);
 		}
 		else if(ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP) {
-			printf("\nsoltou em (%d, %d)", ev.mouse.x, ev.mouse.y);
+			//printf("\nsoltou em (%d, %d)", ev.mouse.x, ev.mouse.y);
 			getCell(ev.mouse.x, ev.mouse.y, &lin_dst, &col_dst);
             swap(lin_src, col_src, lin_dst, col_dst);
 			do{
 				zeraSequencia();
+				imprimeMatriz();
 				sobeZeros();
 				identificaSequencia();
 			}while(identificaSequencia() == 1);
