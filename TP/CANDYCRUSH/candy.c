@@ -109,9 +109,6 @@ void criaMatrizAuxiliar(int matriz[N_LINHAS][N_COLS]){
 }
 
 int identificaSequencia(){
-	int matrizAuxiliar[N_LINHAS][N_COLS];
-	criaMatrizAuxiliar(matrizAuxiliar);
-
 	int i = 0, j = 0, contSeq = 1, sequencia = 0;
 	//verificar sequencias nas linhas
 	//trocar os indices das sequencias encontradas e trocar por 1 na matriz auxiliar
@@ -212,11 +209,11 @@ void sobeZeros(){
 	int i, j;
 
 	for(j = 0; j < N_COLS; j++){
-		for(i = N_LINHAS; i > 0; i--){
-			if(M[i][j].type == 0 && M[i - 1][j].type != 0){
+		for(i = N_LINHAS - 1; i > 0; i--){
+			if(M[i][j].type == 0  && M[i - 1][j].type != 0){
 				M[i][j].type = M[i - 1][j].type;
 				M[i - 1][j].type = 0;
-				i = N_LINHAS;
+				i = N_LINHAS - 1;
 			}
 		}
 	}
@@ -233,10 +230,44 @@ void imprimeMatriz(){
 	printf("\n");
 }
 
-int calculaPontuacao(int tamSequencia){
-	int pontuacao = 0;
-	pontuacao = pontuacao + pow(2, tamSequencia);
-	return pontuacao;
+int calculaPontuacao(){
+	int i = 0, j = 0, contSeq = 1, sequencia = 0;
+	//verificar sequencias nas linhas
+	//trocar os indices das sequencias encontradas e trocar por 1 na matriz auxiliar
+	for(i = 0; i < N_LINHAS; i++){
+		contSeq = 1;
+		for(j = 1; j < N_COLS; j++){
+			if(M[i][j].type != 0){
+				if(M[i][j].type == M[i][j - 1].type){
+					contSeq++;
+				} else {
+					contSeq = 1;
+				}
+				if(contSeq >= 3){
+					sequencia += contSeq;
+				}	
+			}   
+		}
+	}
+
+	//verificar sequencias nas colunas
+		//trocar os indices das sequencias encontradas e trocar por 1 na matriz auxiliar
+	for(j = 0; j < N_COLS; j++){
+		for(i = 0; i < N_LINHAS; i++){
+			if(M[i][j].type != 0){
+				if(M[i][j].type == M[i - 1][j].type){
+					contSeq++;
+				} else {
+					contSeq = 1;
+				}
+				if(contSeq >= 3){
+					sequencia += contSeq;
+				}
+			} 
+		}
+	}
+
+	return sequencia;
 }
 
 int main(int argc, char **argv){
@@ -299,13 +330,14 @@ int main(int argc, char **argv){
 	
 	ALLEGRO_FONT *size_32 = al_load_font("arial.ttf", 32, 1);
 
-	int pontuacao = 0;
+	int pontos = 0, pontos_total = 0;
 	char texto[20];
 
 	//sprintf(texto, "Pontuacao: %d", pontuacao);
 	//al_draw_text(size_32, al_map_rgb(255, 255, 255), 60, 700, 0, texto);
 
 	//inicializa matriz de Candies
+	srand(time(NULL));
 	do{
 		initCandies();
 		identificaSequencia();
@@ -334,17 +366,25 @@ int main(int argc, char **argv){
 			//printf("\nsoltou em (%d, %d)", ev.mouse.x, ev.mouse.y);
 			getCell(ev.mouse.x, ev.mouse.y, &lin_dst, &col_dst);
             swap(lin_src, col_src, lin_dst, col_dst);
+			
 			do{
+				pontos = pow(2, calculaPontuacao());
+				if(pontos == 1){
+					pontos = 0;
+				}
+				pontos_total += pontos;
+				printf("\n%d\n", pontos_total);
 				zeraSequencia();
 				imprimeMatriz();
 				sobeZeros();
 				identificaSequencia();
-			}while(identificaSequencia() == 1);
+			}while(identificaSequencia() == 1);	
 		}		
 	    //se o tipo de evento for um evento do temporizador, ou seja, se o tempo passou de t para t+1
 		else if(ev.type == ALLEGRO_EVENT_TIMER) {
 		    draw_scenario(display);
-			al_flip_display();		
+			al_flip_display();
+			
 		}
 	    //se o tipo de evento for o fechamento da tela (clique no x da janela)
 		else if(ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
