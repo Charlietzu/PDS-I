@@ -5,19 +5,13 @@
 #include <conio.h>
 
 int numEspacos(char *str){
-    int i;
-    for(i = 0; str[i]!='\0'; i++);
-
-    if(i == 0 && str[i]!=' '){
+    if(str[0] == '\0'){
         return 0;
     }
-    
-    if(str[i] == ' '){
-        return 1 + numEspacos(&str[i - 1]);
-    }else{
-        return numEspacos(&str[i - 1]);
-    } 
-    
+    if(str[0] == ' '){
+        return 1 + numEspacos(str + 1);
+    }
+    return 0 + numEspacos(str + 1);
 }
 
 void imp2Cont(int i, int n){
@@ -32,6 +26,7 @@ void imp2Cont(int i, int n){
 }
 
 int main(){
-    imp2Cont(1,3);
+    char str[100] = "oi tudobem";
+    printf("%d", numEspacos(str));
     return 0;
 }
