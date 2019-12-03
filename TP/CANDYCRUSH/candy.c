@@ -6,7 +6,6 @@
 #include <allegro5/allegro_image.h>
 #include <stdlib.h>
 #include <math.h>
-#include "matriz.h"
 
 #define LARGURA_DISPLAY 480
 #define ALTURA_DISPLAY 640
@@ -34,7 +33,7 @@ typedef struct Candy{
 
 Candy M[N_LINHAS][N_COLS];
 
-void registraRecorde(int pontuacao, int *recorde) {
+int registraRecorde(int pontuacao, int *recorde) {
 	FILE *arq = fopen("recorde.txt", "r");
 	*recorde = -1;
 	if(arq != NULL) {
@@ -45,7 +44,9 @@ void registraRecorde(int pontuacao, int *recorde) {
 		arq = fopen("recorde.txt", "w");
 		fprintf(arq, "%d", pontuacao);
 		fclose(arq);
+		return 1;
 	}
+	return 0;
 }
 
 void initCandies(){
@@ -115,13 +116,10 @@ void getCell(int x, int y, int *lin, int *col){
 void swap(int lin_src, int col_src, int lin_dst, int col_dst){
 	Candy aux;
 	aux = M[lin_src][col_src];
-    int dist_col, dist_lin;
 	if(M[lin_src][col_src].type != 0){
-		if(((lin_dst==lin_src) || (col_dst==col_src)) && ((lin_dst==lin_src + 1 || col_dst==col_src + 1) || (lin_dst==lin_src - 1 || col_dst==col_src - 1))){
-        	M[lin_src][col_src] = M[lin_dst][col_dst];
-	    	M[lin_dst][col_dst] = aux;
-    	}
-	}
+		M[lin_src][col_src] = M[lin_dst][col_dst];
+		M[lin_dst][col_dst] = aux;
+    }
 	jogadas--;
 }
 
@@ -421,7 +419,18 @@ int main(int argc, char **argv){
 
 	al_rest(1);
 	int recorde;
-	registraRecorde(pontos, &recorde);
+	al_clear_to_color(al_map_rgb(0,0,0));
+	sprintf(minha_pontuacao, "Sua pontuacao: %d", pontos);
+	al_draw_text(size_f, al_map_rgb(255, 255, 255), LARGURA_DISPLAY/3, ALTURA_DISPLAY/2, 0, minha_pontuacao);
+	if(registraRecorde(pontos, &recorde)){
+		al_draw_text(size_f, al_map_rgb(255, 255, 255), LARGURA_DISPLAY/3, 100+ALTURA_DISPLAY/2, 0, "Novo Recorde!");
+	} else {
+		sprintf(minha_pontuacao, "Recorde atual: %d", recorde);
+		al_draw_text(size_f, al_map_rgb(255, 255, 255), LARGURA_DISPLAY/3, 100+ALTURA_DISPLAY/2, 0, minha_pontuacao);
+	}
+
+	al_flip_display();	
+	al_rest(4);
 
 	al_destroy_timer(timer);
 	al_destroy_display(display);
