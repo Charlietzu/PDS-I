@@ -10,6 +10,7 @@
 
 #define LARGURA_DISPLAY 480
 #define ALTURA_DISPLAY 640
+#define ALTURA_PLACAR 64
 #define FPS 60
 
 #define N_COLS 6
@@ -17,8 +18,13 @@
 
 #define N_TYPES 4
 
-const int COL_W = LARGURA_DISPLAY/N_COLS;
-const int LIN_W = ALTURA_DISPLAY/N_LINHAS;
+const int LARGURA_CEL = (float) LARGURA_DISPLAY/N_COLS;
+const int ALTURA_CEL = (float) (ALTURA_DISPLAY-ALTURA_PLACAR)/N_LINHAS;
+
+int pontos=0, jogadas=10;
+char minha_pontuacao[100], minhas_jogadas[100];
+
+ALLEGRO_FONT *size_f;
 
 typedef struct Candy{
 	int type;
@@ -27,6 +33,20 @@ typedef struct Candy{
 }Candy;
 
 Candy M[N_LINHAS][N_COLS];
+
+void registraRecorde(int pontuacao, int *recorde) {
+	FILE *arq = fopen("recorde.txt", "r");
+	*recorde = -1;
+	if(arq != NULL) {
+		fscanf(arq, "%d", recorde);
+		fclose(arq);
+	}
+	if(*recorde < pontuacao ) {
+		arq = fopen("recorde.txt", "w");
+		fprintf(arq, "%d", pontuacao);
+		fclose(arq);
+	}
+}
 
 void initCandies(){
 	int i, j;
@@ -43,11 +63,11 @@ void initCandies(){
 }
 
 int getXCoord(int col) {
-	return col*COL_W;
+	return col*LARGURA_CEL;
 }
 
 int getYCoord(int lin){
-	return lin*LIN_W;
+	return ALTURA_PLACAR + lin*ALTURA_CEL;
 }
 
 void desenhaCandy(Candy c, int lin, int col){
@@ -55,15 +75,15 @@ void desenhaCandy(Candy c, int lin, int col){
 	int y = getYCoord(lin);
 	
 	if(c.type == 1){
-		al_draw_filled_rectangle(x, y, x + COL_W, y + LIN_W, c.cor);
+		al_draw_filled_rectangle(x, y, x + LARGURA_CEL, y + ALTURA_CEL, c.cor);
 	}else if(c.type == 2){
-		al_draw_filled_rounded_rectangle(x, y, x + COL_W, y + LIN_W, COL_W/3, LIN_W/3, c.cor);
+		al_draw_filled_rounded_rectangle(x, y, x + LARGURA_CEL, y + ALTURA_CEL, LARGURA_CEL/3, ALTURA_CEL/3, c.cor);
 	}else if(c.type == 3){
-		al_draw_filled_ellipse(x + COL_W/2, y + LIN_W/2, COL_W/2, LIN_W/2, c.cor);
+		al_draw_filled_ellipse(x + LARGURA_CEL/2, y + ALTURA_CEL/2, LARGURA_CEL/2, ALTURA_CEL/2, c.cor);
 	}else if(c.type ==4){
-		al_draw_filled_triangle(x+COL_W/2, y, 
-								x, y+LIN_W, 
-								x+COL_W, y+LIN_W, 
+		al_draw_filled_triangle(x+LARGURA_CEL/2, y, 
+								x, y+ALTURA_CEL, 
+								x+LARGURA_CEL, y+ALTURA_CEL, 
 								c.cor);
 	}
 }
@@ -72,7 +92,12 @@ void draw_scenario(ALLEGRO_DISPLAY *display) {
 	ALLEGRO_COLOR BKG_COLOR = al_map_rgb(0,0,0); 
 	al_set_target_bitmap(al_get_backbuffer(display));
 	al_clear_to_color(BKG_COLOR);
-    al_init_image_addon();
+
+	sprintf(minha_pontuacao, "Pontuacao: %d", pontos);
+	al_draw_text(size_f, al_map_rgb(255, 255, 255), LARGURA_DISPLAY - 200, ALTURA_PLACAR/4, 0, minha_pontuacao); 
+	//PLAYS
+	sprintf(minhas_jogadas, "Jogadas: %d", jogadas);
+	al_draw_text(size_f, al_map_rgb(255, 255, 255), 10, ALTURA_PLACAR/4, 0, minhas_jogadas); 
 	
 	int i, j;
 	for(i = 0; i < N_LINHAS; i++){
@@ -83,8 +108,8 @@ void draw_scenario(ALLEGRO_DISPLAY *display) {
 }
 
 void getCell(int x, int y, int *lin, int *col){
-	*lin = y/LIN_W;
-	*col = x/COL_W;
+	*lin = (y-ALTURA_PLACAR)/ALTURA_CEL;
+	*col = x/LARGURA_CEL;
 }
 
 void swap(int lin_src, int col_src, int lin_dst, int col_dst){
@@ -97,6 +122,7 @@ void swap(int lin_src, int col_src, int lin_dst, int col_dst){
 	    	M[lin_dst][col_dst] = aux;
     	}
 	}
+	jogadas--;
 }
 
 void criaMatrizAuxiliar(int matriz[N_LINHAS][N_COLS]){
@@ -199,7 +225,7 @@ void zeraSequencia(){
 	for(i = 0; i < N_LINHAS; i++){
 		for(j = 0; j < N_COLS; j++){
 			if(matrizAuxiliar[i][j] == 1){
-				M[i][j].type = 0;
+				M[i][j].type = 0;	
 			}
 		}
 	}
@@ -304,6 +330,12 @@ int main(int argc, char **argv){
 	if(!al_install_mouse())
 		fprintf(stderr, "failed to initialize mouse!\n");   
 
+	//inicializa o modulo allegro que carrega as fontes
+	al_init_font_addon();
+	//inicializa o modulo allegro que entende arquivos tff de fontes
+	al_init_ttf_addon();
+	
+	size_f = al_load_font("arial.ttf", 24, 1);
 
 	event_queue = al_create_event_queue();
 	if(!event_queue) {
@@ -327,14 +359,6 @@ int main(int argc, char **argv){
     al_init_font_addon();
 	//inicializa o modulo allegro que entende arquivos tff de fontes
     al_init_ttf_addon();
-	
-	ALLEGRO_FONT *size_32 = al_load_font("arial.ttf", 32, 1);
-
-	int pontos = 0, pontos_total = 0;
-	char texto[20];
-
-	//sprintf(texto, "Pontuacao: %d", pontuacao);
-	//al_draw_text(size_32, al_map_rgb(255, 255, 255), 60, 700, 0, texto);
 
 	//inicializa matriz de Candies
 	srand(time(NULL));
@@ -343,7 +367,7 @@ int main(int argc, char **argv){
 		identificaSequencia();
 	}while(identificaSequencia() == 1);
 
-	int playing = 1;
+	int playing = 1, pts = 0;
 	ALLEGRO_EVENT ev;
 	
 	int lin_src, col_src, lin_dst, col_dst, dist_col, dist_lin;
@@ -366,25 +390,27 @@ int main(int argc, char **argv){
 			//printf("\nsoltou em (%d, %d)", ev.mouse.x, ev.mouse.y);
 			getCell(ev.mouse.x, ev.mouse.y, &lin_dst, &col_dst);
             swap(lin_src, col_src, lin_dst, col_dst);
-			
+			pts = 0;
 			do{
-				pontos = pow(2, calculaPontuacao());
-				if(pontos == 1){
-					pontos = 0;
-				}
-				pontos_total += pontos;
-				printf("\n%d\n", pontos_total);
+				
+				pts += calculaPontuacao();
+				printf("\n%d\n", pts);
+				pontos += pts;
 				zeraSequencia();
 				imprimeMatriz();
 				sobeZeros();
 				identificaSequencia();
 			}while(identificaSequencia() == 1);	
+			
 		}		
 	    //se o tipo de evento for um evento do temporizador, ou seja, se o tempo passou de t para t+1
 		else if(ev.type == ALLEGRO_EVENT_TIMER) {
-		    draw_scenario(display);
+			draw_scenario(display);
 			al_flip_display();
-			
+
+			if(jogadas == 0){
+				playing = 0;
+			}
 		}
 	    //se o tipo de evento for o fechamento da tela (clique no x da janela)
 		else if(ev.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
@@ -394,6 +420,8 @@ int main(int argc, char **argv){
 	} 
 
 	al_rest(1);
+	int recorde;
+	registraRecorde(pontos, &recorde);
 
 	al_destroy_timer(timer);
 	al_destroy_display(display);
