@@ -31,7 +31,6 @@ ALLEGRO_BITMAP *telaFundo = NULL;
 
 typedef struct Candy{
 	int type;
-	int active;
 	ALLEGRO_COLOR cor;
 }Candy;
 
@@ -58,7 +57,6 @@ void initCandies(){
 	for(i = 0;i < N_LINHAS; i++){
 		for(j = 0; j < N_COLS ; j++){
 			M[i][j].type = rand()%4 + 1;
-			M[i][j].active = 1;
 			M[i][j].cor = al_map_rgb(1+rand()%256, 1+rand()%256, 1+rand()%256);
 			//printf("%d ", M[i][j].type);
 		}
@@ -102,7 +100,7 @@ void draw_scenario(ALLEGRO_DISPLAY *display) {
 
 	sprintf(minha_pontuacao, "Pontuacao: %d", pontos);
 	al_draw_text(size_f, al_map_rgb(255, 255, 255), LARGURA_DISPLAY - 200, ALTURA_PLACAR/4, 0, minha_pontuacao); 
-	//PLAYS
+	
 	sprintf(minhas_jogadas, "Jogadas: %d", jogadas);
 	al_draw_text(size_f, al_map_rgb(255, 255, 255), 10, ALTURA_PLACAR/4, 0, minhas_jogadas); 
 	
@@ -119,14 +117,19 @@ void getCell(int x, int y, int *lin, int *col){
 	*col = x/LARGURA_CEL;
 }
 
-void swap(int lin_src, int col_src, int lin_dst, int col_dst){
+void swap(int lin_src,int col_src,int lin_dst,int col_dst){
 	Candy aux;
 	aux = M[lin_src][col_src];
-	if(M[lin_src][col_src].type != 0){
-		M[lin_src][col_src] = M[lin_dst][col_dst];
-		M[lin_dst][col_dst] = aux;
-    }
-	jogadas--;
+	int dist_col, dist_lin;
+	if(M[lin_src][col_src].type != 0 || M[lin_dst][col_dst].type != 0){
+		if(((lin_dst==lin_src) || (col_dst==col_src)) && ((lin_dst==lin_src + 1 || col_dst==col_src + 1) || (lin_dst==lin_src - 1 || col_dst==col_src - 1))){
+        	M[lin_src][col_src] = M[lin_dst][col_dst];
+	    	M[lin_dst][col_dst] = aux;
+			jogadas--;
+    	}
+		
+	}
+	
 }
 
 int distancia(int lin1, int col1, int lin2, int col2) {
@@ -186,7 +189,7 @@ void zeraSequencia(){
 	criaMatrizAuxiliar(matrizAuxiliar);
 
 	int i = 0, j = 0, contSeq = 1;
-	//verificar sequencias nas linhas
+
 	for(i = 0; i < N_LINHAS; i++){
 		contSeq = 1;
 		for(j = 1; j < N_COLS; j++){
@@ -205,7 +208,6 @@ void zeraSequencia(){
 		}
 	}
 	
-	//verificar sequencias nas colunas
 	for(j = 0; j < N_COLS; j++){
 		for(i = 0; i < N_LINHAS; i++){
 			if(M[i][j].type != 0){
@@ -223,7 +225,6 @@ void zeraSequencia(){
 		}
 	}
 	
-	//trocar sequencias por 0
 	for(i = 0; i < N_LINHAS; i++){
 		for(j = 0; j < N_COLS; j++){
 			if(matrizAuxiliar[i][j] == 1){
@@ -344,7 +345,7 @@ int main(int argc, char **argv){
 		return -1;
 	}
 
-	telaFundo = al_load_bitmap("telafundo.jpg");
+	telaFundo = al_load_bitmap("telafundo.png");
 	if (!telaFundo) {
 		fprintf(stderr, "failed to load background bitmap!\n");
 		return -1;
@@ -427,9 +428,10 @@ int main(int argc, char **argv){
 		}
 		else if(ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP) {
 			getCell(ev.mouse.x, ev.mouse.y, &lin_dst, &col_dst);
-			if(distancia(lin_src, col_src, lin_dst, col_dst) > 0){
+			if(distancia(lin_src, col_src, lin_dst, col_dst) > 0 && (M[lin_src][col_src].type != 0 || M[lin_dst][col_dst].type != 0)){
 				swap(lin_src, col_src, lin_dst, col_dst);
 				al_play_sample(movimentacao, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+				
 			}
 			pts = 0;
 			do{
@@ -440,7 +442,6 @@ int main(int argc, char **argv){
 				sobeZeros();
 				identificaSequencia();
 			}while(identificaSequencia() == 1);	
-			
 		}		
 	    //se o tipo de evento for um evento do temporizador, ou seja, se o tempo passou de t para t+1
 		else if(ev.type == ALLEGRO_EVENT_TIMER) {
