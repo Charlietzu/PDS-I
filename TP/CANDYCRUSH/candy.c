@@ -4,6 +4,8 @@
 #include <allegro5/allegro_ttf.h>
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_image.h>
+#include <allegro5/allegro_audio.h>
+#include <allegro5/allegro_acodec.h>
 #include <stdlib.h>
 #include <math.h>
 
@@ -24,6 +26,8 @@ int pontos=0, jogadas=10;
 char minha_pontuacao[100], minhas_jogadas[100];
 
 ALLEGRO_FONT *size_f;
+ALLEGRO_BITMAP *telaFundo = NULL;
+
 
 typedef struct Candy{
 	int type;
@@ -55,12 +59,12 @@ void initCandies(){
 		for(j = 0; j < N_COLS ; j++){
 			M[i][j].type = rand()%4 + 1;
 			M[i][j].active = 1;
-			M[i][j].cor = al_map_rgb(rand()%256, rand()%256, rand()%256);
-			printf("%d ", M[i][j].type);
+			M[i][j].cor = al_map_rgb(1+rand()%256, 1+rand()%256, 1+rand()%256);
+			//printf("%d ", M[i][j].type);
 		}
-		printf("\n");
+		//printf("\n");
 	}
-    printf("\n");
+    //printf("\n");
 }
 
 int getXCoord(int col) {
@@ -94,6 +98,8 @@ void draw_scenario(ALLEGRO_DISPLAY *display) {
 	al_set_target_bitmap(al_get_backbuffer(display));
 	al_clear_to_color(BKG_COLOR);
 
+	al_draw_bitmap(telaFundo, 0, 0, 0);
+
 	sprintf(minha_pontuacao, "Pontuacao: %d", pontos);
 	al_draw_text(size_f, al_map_rgb(255, 255, 255), LARGURA_DISPLAY - 200, ALTURA_PLACAR/4, 0, minha_pontuacao); 
 	//PLAYS
@@ -123,6 +129,10 @@ void swap(int lin_src, int col_src, int lin_dst, int col_dst){
 	jogadas--;
 }
 
+int distancia(int lin1, int col1, int lin2, int col2) {
+	return sqrt(pow(lin1-lin2, 2) + pow(col1-col2, 2));
+}
+
 void criaMatrizAuxiliar(int matriz[N_LINHAS][N_COLS]){
 	int i, j;
 	for(i = 0; i < N_LINHAS; i++){
@@ -134,8 +144,6 @@ void criaMatrizAuxiliar(int matriz[N_LINHAS][N_COLS]){
 
 int identificaSequencia(){
 	int i = 0, j = 0, contSeq = 1, sequencia = 0;
-	//verificar sequencias nas linhas
-	//trocar os indices das sequencias encontradas e trocar por 1 na matriz auxiliar
 	for(i = 0; i < N_LINHAS; i++){
 		contSeq = 1;
 		for(j = 1; j < N_COLS; j++){
@@ -153,8 +161,6 @@ int identificaSequencia(){
 		}
 	}
 
-	//verificar sequencias nas colunas
-		//trocar os indices das sequencias encontradas e trocar por 1 na matriz auxiliar
 	for(j = 0; j < N_COLS; j++){
 		for(i = 0; i < N_LINHAS; i++){
 			if(M[i][j].type != 0){
@@ -181,7 +187,6 @@ void zeraSequencia(){
 
 	int i = 0, j = 0, contSeq = 1;
 	//verificar sequencias nas linhas
-		//trocar os indices das sequencias encontradas e trocar por 1 na matriz auxiliar
 	for(i = 0; i < N_LINHAS; i++){
 		contSeq = 1;
 		for(j = 1; j < N_COLS; j++){
@@ -201,7 +206,6 @@ void zeraSequencia(){
 	}
 	
 	//verificar sequencias nas colunas
-		//trocar os indices das sequencias encontradas e trocar por 1 na matriz auxiliar
 	for(j = 0; j < N_COLS; j++){
 		for(i = 0; i < N_LINHAS; i++){
 			if(M[i][j].type != 0){
@@ -218,8 +222,8 @@ void zeraSequencia(){
 			}	
 		}
 	}
+	
 	//trocar sequencias por 0
-		//pegar todos os indices 1 na matriz auxiliar e trocar por 0 na matriz original
 	for(i = 0; i < N_LINHAS; i++){
 		for(j = 0; j < N_COLS; j++){
 			if(matrizAuxiliar[i][j] == 1){
@@ -227,6 +231,7 @@ void zeraSequencia(){
 			}
 		}
 	}
+	
 }
 
 void sobeZeros(){
@@ -256,8 +261,7 @@ void imprimeMatriz(){
 
 int calculaPontuacao(){
 	int i = 0, j = 0, contSeq = 1, sequencia = 0;
-	//verificar sequencias nas linhas
-	//trocar os indices das sequencias encontradas e trocar por 1 na matriz auxiliar
+
 	for(i = 0; i < N_LINHAS; i++){
 		contSeq = 1;
 		for(j = 1; j < N_COLS; j++){
@@ -274,8 +278,6 @@ int calculaPontuacao(){
 		}
 	}
 
-	//verificar sequencias nas colunas
-		//trocar os indices das sequencias encontradas e trocar por 1 na matriz auxiliar
 	for(j = 0; j < N_COLS; j++){
 		for(i = 0; i < N_LINHAS; i++){
 			if(M[i][j].type != 0){
@@ -299,6 +301,8 @@ int main(int argc, char **argv){
 	ALLEGRO_DISPLAY *display = NULL;
 	ALLEGRO_EVENT_QUEUE *event_queue = NULL;
 	ALLEGRO_TIMER *timer = NULL;
+	ALLEGRO_SAMPLE *soundtrack = NULL;	
+	ALLEGRO_SAMPLE *movimentacao = NULL;
 
 
 	//----------------------- rotinas de inicializacao ---------------------------------------
@@ -335,6 +339,43 @@ int main(int argc, char **argv){
 	
 	size_f = al_load_font("arial.ttf", 24, 1);
 
+	if(!al_init_image_addon()){
+		fprintf(stderr, "failed to initialize images:\n");
+		return -1;
+	}
+
+	telaFundo = al_load_bitmap("telafundo.jpg");
+	if (!telaFundo) {
+		fprintf(stderr, "failed to load background bitmap!\n");
+		return -1;
+	}
+
+	if (!al_install_audio()) {
+			fprintf(stderr, "failed to initialize audio!\n");
+	        return -1;
+	}
+	if (!al_init_acodec_addon()) {
+		fprintf(stderr, "failed to initialize audio codecs!\n");
+		return -1;
+	}
+
+	soundtrack = al_load_sample("soundtrack.wav");
+	if (!soundtrack) {
+		fprintf(stderr, "audio clip move not loaded!\n");
+		return -1;
+	}
+
+	movimentacao = al_load_sample("movimento.wav");
+	if (!movimentacao) {
+		fprintf(stderr, "audio clip move not loaded!\n");
+		return -1;
+	}
+
+	if (!al_reserve_samples(3)) {
+		fprintf(stderr, "failed to reserve samples!\n");
+		return -1;
+	}
+
 	event_queue = al_create_event_queue();
 	if(!event_queue) {
 		fprintf(stderr, "failed to create event_queue!\n");
@@ -367,6 +408,7 @@ int main(int argc, char **argv){
 
 	int playing = 1, pts = 0;
 	ALLEGRO_EVENT ev;
+	al_play_sample(soundtrack, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_LOOP, NULL);
 	
 	int lin_src, col_src, lin_dst, col_dst, dist_col, dist_lin;
 	
@@ -381,18 +423,17 @@ int main(int argc, char **argv){
 
 		}
 		else if(ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_DOWN) {
-			//printf("\nclicou em (%d, %d)", ev.mouse.x, ev.mouse.y);
 			getCell(ev.mouse.x, ev.mouse.y, &lin_src, &col_src);
 		}
 		else if(ev.type == ALLEGRO_EVENT_MOUSE_BUTTON_UP) {
-			//printf("\nsoltou em (%d, %d)", ev.mouse.x, ev.mouse.y);
 			getCell(ev.mouse.x, ev.mouse.y, &lin_dst, &col_dst);
-            swap(lin_src, col_src, lin_dst, col_dst);
+			if(distancia(lin_src, col_src, lin_dst, col_dst) > 0){
+				swap(lin_src, col_src, lin_dst, col_dst);
+				al_play_sample(movimentacao, 1.0, 0.0, 1.0, ALLEGRO_PLAYMODE_ONCE, NULL);
+			}
 			pts = 0;
 			do{
-				
 				pts += calculaPontuacao();
-				printf("\n%d\n", pts);
 				pontos += pts;
 				zeraSequencia();
 				imprimeMatriz();
@@ -408,6 +449,7 @@ int main(int argc, char **argv){
 
 			if(jogadas == 0){
 				playing = 0;
+				al_destroy_sample(soundtrack);
 			}
 		}
 	    //se o tipo de evento for o fechamento da tela (clique no x da janela)
